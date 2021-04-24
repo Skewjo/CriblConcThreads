@@ -16,19 +16,15 @@ import(
 const timeDelay=10;
 const randIterations=3;
 const blockExecution=false;
+const fixedSeed=false;
 
 //TODO: Make functions for:
-// 1. print sys & runtime info
 // 2. populateSlice
 // 3. goRoutineWorker
-// 4. getWindowsThreadCount
-// 5. printResults
 
 //TODO: Make it work on Linux
 //TODO: Get better grasp on GoRoutine sync calls, defer, & sleep
 //TODO: Show more system info
-
-
 
 func main(){
   printSysAndRTInfo()
@@ -51,6 +47,7 @@ func main(){
   origThreadCount := getThreadCountWindows()
   fmt.Printf("Thread count before work: %d\n", origThreadCount)
 
+  //For each value from 2^0 to 2^n
   for i := 0; i < len(binarySlice); i++{
     var concurrentGoRoutines = 0
     var maxConcurrentGoRoutines = 0
@@ -61,6 +58,8 @@ func main(){
     var timeStart = time.Now();
 
     var wg sync.WaitGroup
+
+    //Create specified number of GoRoutines
     for j:= 0; j < binarySlice[i]; j++{
       if(blockExecution){
         wg.Add(1)
@@ -70,9 +69,13 @@ func main(){
       go func(){
         concurrentGoRoutines++
         for h := 0; h < randIterations; h++{
-          //r := rand.New(rand.NewSource(42)) //probably need a "random" seed value...
-          r := rand.New(rand.NewSource(time.Now().UnixNano())) // Attempted, but failed with compiler error: ".\concThreads.go:71:101: syntax error: unexpected newline, expecting comma or )"
-          _ = r
+          var r *rand.Rand
+          if(fixedSeed){
+            r = rand.New(rand.NewSource(42))
+          } else{
+            r = rand.New(rand.NewSource(time.Now().UnixNano())) 
+          }
+          _ = r //Throw the value away
           time.Sleep(timeDelay * time.Second)
         }
         concurrentGoRoutines--
@@ -108,6 +111,12 @@ func printSysAndRTInfo(){
   fmt.Printf("OS: %s\n", runtime.GOOS)
   fmt.Print("Blocking calls: ")
   if(blockExecution){
+    fmt.Print("true\n")
+  } else{
+    fmt.Print("false\n")
+  }
+  fmt.Print("Fixed Seed: ")
+  if(fixedSeed){
     fmt.Print("true\n")
   } else{
     fmt.Print("false\n")
