@@ -15,7 +15,7 @@ import(
 
 const timeDelay=10;
 const randIterations=3;
-const blockExecution=true;
+const blockExecution=false;
 
 //TODO: Make functions for:
 // 1. print sys & runtime info
@@ -28,18 +28,11 @@ const blockExecution=true;
 //TODO: Get better grasp on GoRoutine sync calls, defer, & sleep
 //TODO: Show more system info
 
-func main(){
-  fmt.Printf("Go version: %s\n", runtime.Version())
-  fmt.Printf("OS: %s\n", runtime.GOOS)
-  fmt.Print("Blocking calls:")
-  if(blockExecution){
-    fmt.Print("true\n")
-  } else{
-    fmt.Print("false\n")
-  }
-  fmt.Println()
-  
 
+
+func main(){
+  printSysAndRTInfo()
+  
   //The following block creates a slice of numbers from 2^0 up to 2^17
   binarySlice := make([]int, 1)
   binarySlice[0] = 1
@@ -52,7 +45,11 @@ func main(){
 
   concurrentRoutines := make([]int, len(binarySlice))
   concurrentThreads := make([]int, len(binarySlice))
+  additionalThreads := make([]int, len(binarySlice))
   runTime := make([]time.Duration, len(binarySlice))
+  
+  origThreadCount := getThreadCountWindows()
+  fmt.Printf("Thread count before work: %d\n", origThreadCount)
 
   for i := 0; i < len(binarySlice); i++{
     var concurrentGoRoutines = 0
@@ -73,34 +70,22 @@ func main(){
       go func(){
         concurrentGoRoutines++
         for h := 0; h < randIterations; h++{
-          r := rand.New(rand.NewSource(42)) //probably need a "random" seed value...
-          //r := rand.New(rand.NewSource(time.Now().UnixNano()) // Attempted, but failed with error: 
+          //r := rand.New(rand.NewSource(42)) //probably need a "random" seed value...
+          r := rand.New(rand.NewSource(time.Now().UnixNano())) // Attempted, but failed with compiler error: ".\concThreads.go:71:101: syntax error: unexpected newline, expecting comma or )"
           _ = r
           time.Sleep(timeDelay * time.Second)
         }
         concurrentGoRoutines--
       }()
+      
       if concurrentGoRoutines > maxConcurrentGoRoutines{
         maxConcurrentGoRoutines = concurrentGoRoutines
-        //fmt.Printf("%d: %d\n", i, maxConcurrentGoRoutines)
       }
     }
 
-    //I wanted to include the follow block (getting the thread count) inside of the GoRoutine, but this command call is too expensive and kills the program.
+    //I wanted to include the follow block inside of the GoRoutine, but this command call(on Windows at least) is too expensive and locks up the program. Ultimately I don't believe this matters because I found that the threads take quite a bit of time to be cleaned up (on the order of seconds).
     if runtime.GOOS == "windows" {
-      cmd := exec.Command("./GetThreadCount.exe", strconv.Itoa(os.Getpid()))
-      if err := cmd.Start(); err != nil {
-        log.Fatalf("cmd.Start: %v", err)
-      }
-      if err := cmd.Wait(); err != nil {
-        if exiterr, ok := err.(*exec.ExitError); ok {
-          if status, ok := exiterr.Sys().(syscall.WaitStatus); ok {
-            concThreads = status.ExitStatus()
-          }
-        } else {
-          log.Fatalf("cmd.Wait: %v", err)
-        }
-      }
+      concThreads = getThreadCountWindows()
       if concThreads > maxConcThreads{
         maxConcThreads = concThreads
       }
@@ -110,11 +95,48 @@ func main(){
 
     concurrentRoutines[i] = maxConcurrentGoRoutines
     concurrentThreads[i] = maxConcThreads
+    additionalThreads[i] = maxConcThreads - origThreadCount
     runTime[i] = timeTotal
   }
 
   //Print the results
-  fmt.Println("\tTot. GR\t\tMax GR\t\tMax Threads\tRun Time")
+  printResults(binarySlice, concurrentRoutines, concurrentThreads, additionalThreads, runTime)
+}
+
+func printSysAndRTInfo(){
+  fmt.Printf("Go version: %s\n", runtime.Version())
+  fmt.Printf("OS: %s\n", runtime.GOOS)
+  fmt.Print("Blocking calls: ")
+  if(blockExecution){
+    fmt.Print("true\n")
+  } else{
+    fmt.Print("false\n")
+  }
+  fmt.Println()
+}
+
+func getThreadCountWindows() int{
+  var concThreads = 0
+  if runtime.GOOS == "windows" {
+    cmd := exec.Command("./GetThreadCount.exe", strconv.Itoa(os.Getpid()))
+    if err := cmd.Start(); err != nil {
+      log.Fatalf("cmd.Start: %v", err)
+    }
+    if err := cmd.Wait(); err != nil {
+      if exiterr, ok := err.(*exec.ExitError); ok {
+        if status, ok := exiterr.Sys().(syscall.WaitStatus); ok {
+          concThreads = status.ExitStatus()
+        }
+      } else {
+        log.Fatalf("cmd.Wait: %v", err)
+      }
+    }
+  }
+  return concThreads;
+}
+
+func printResults(binarySlice []int, concurrentRoutines []int, concurrentThreads []int, additionalThreads []int, runTime []time.Duration){
+  fmt.Println("\tTot. GR\t\tMax GR\t\tMax Threads\tAddl. Threads\tRun Time")
   for i:= 0; i < len(binarySlice); i++{
     fmt.Printf("\t%d: ", binarySlice[i])  
     if(binarySlice[i] < 100000){
@@ -122,6 +144,7 @@ func main(){
     }
     fmt.Printf("\t%d", concurrentRoutines[i])
     fmt.Printf("\t\t%d", concurrentThreads[i])
+    fmt.Printf("\t\t%d", additionalThreads[i])
     fmt.Print("\t\t")
     fmt.Print(runTime[i])
     fmt.Print("\n")
