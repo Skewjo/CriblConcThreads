@@ -17,10 +17,20 @@ const timeDelay=10;
 const randIterations=3;
 const blockExecution=true;
 
+//TODO: Make functions for:
+// 1. print sys & runtime info
+// 2. populateSlice
+// 3. goRoutineWorker
+// 4. getWindowsThreadCount
+// 5. printResults
+
+//TODO: Make it work on Linux
+//TODO: Get better grasp on GoRoutine sync calls, defer, & sleep
+//TODO: Show more system info
+
 func main(){
-  if runtime.GOOS == "windows" {
-    fmt.Print("OS: Windows\n")
-  } 
+  fmt.Printf("Go version: %s\n", runtime.Version())
+  fmt.Printf("OS: %s\n", runtime.GOOS)
   fmt.Print("Blocking calls:")
   if(blockExecution){
     fmt.Print("true\n")
