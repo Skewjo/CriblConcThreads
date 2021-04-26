@@ -1,13 +1,16 @@
 # CriblConcThreads
 
-Somewhat surprisingly, Go performs little optimization for using the same fixed random seed in all 100000+ Go-routines (I believe blocking calls were incorrectly implemented at this point for Windows, but not for Linux so this is only an apt inter-OS comparsion):
+## Little Optimization for Fixed Seeds
+Somewhat surprisingly, Go performs less optimization than I had expected for using the same fixed random seed in all 100000+ Go-routines:
 | Windows | Linux |
 | ------------- | ------------- |
-| ![no_optimization_for_fixed_seeds](https://user-images.githubusercontent.com/4118039/116079916-0969d700-a65e-11eb-9369-813708a4c3d2.PNG) |
-![optimization for fixed seeds](https://user-images.githubusercontent.com/4118039/116081756-40d98300-a660-11eb-92bc-90cf58a48116.png) |
+| ![no_optimization_for_fixed_seeds](https://user-images.githubusercontent.com/4118039/116079916-0969d700-a65e-11eb-9369-813708a4c3d2.PNG) | ![optimization for fixed seeds](https://user-images.githubusercontent.com/4118039/116081756-40d98300-a660-11eb-92bc-90cf58a48116.png) |
 
+## Wait Groups are expensive
+The act of "add()'ing" to a wait group appears to be somewhat expensive. This was a preliminary version of the program where I had accidentally omitted the defer() and wait() functions necessary to make blocking calls function as intended. As you can see, the execution time shoots up by ~25% and the maximum number of concurrent Go-routines skyrockets by 400%:
+![defer() and wait() omitted](https://user-images.githubusercontent.com/4118039/116082178-ba717100-a660-11eb-9cbf-9439e0e2a8ca.png)
 
-
+## Cranked to 11
 I decided to up the number of Go-routines created up from 100,000+ to 1,000,000+, and at some point, both Windows and Linux fall off the rails:
 
 | Windows | Linux |
