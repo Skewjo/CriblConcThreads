@@ -7,7 +7,7 @@ Somewhat surprisingly, Go performs less optimization than I had expected for usi
 | ![no_optimization_for_fixed_seeds](https://user-images.githubusercontent.com/4118039/116079916-0969d700-a65e-11eb-9369-813708a4c3d2.PNG) | ![optimization for fixed seeds](https://user-images.githubusercontent.com/4118039/116081756-40d98300-a660-11eb-92bc-90cf58a48116.png) |
 
 ## Wait Groups are expensive
-The act of "add()'ing" to a wait group appears to be somewhat expensive. This was a preliminary version of the program where I had accidentally omitted the defer() and wait() functions necessary to make blocking calls function as intended. As you can see, the execution time shoots up by ~25% and the maximum number of concurrent Go-routines skyrockets by 400%:
+The act of "```add()```'ing" to a wait group appears to be somewhat expensive. This was a preliminary version of the program where I had accidentally omitted the ```defer()``` and ```wait()``` functions necessary to make blocking calls function as intended. As you can see, the execution time shoots up by ~25% and the maximum number of concurrent Go-routines skyrockets by 400%:
 ![defer() and wait() omitted](https://user-images.githubusercontent.com/4118039/116082178-ba717100-a660-11eb-9cbf-9439e0e2a8ca.png)
 
 ## Cranked to 11
