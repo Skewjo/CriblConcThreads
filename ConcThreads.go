@@ -17,15 +17,8 @@ import(
 //These 4 constants are used to the determine the complexity of the GoRoutine. 
 const timeDelay=1;
 const randIterations=3;
-const blockExecution=false;
+const blockExecution=true;
 const fixedSeed=true;
-
-//TODO: Make functions for:
-// goRoutineWorker
-
-//TODO: Make it work on Linux
-//TODO: Get better grasp on GoRoutine sync calls, defer, & sleep
-//TODO: Show more system info
 
 func main(){
   printSysAndRTInfo()
@@ -33,9 +26,9 @@ func main(){
   //The following block creates a slice of numbers from 2^0 up to 2^17
   binarySlice := make([]int, 1)
   binarySlice[0] = 1
-  for i:= 0; binarySlice[i] < 1000000; i++{
+  for i:= 0; binarySlice[i] < 100000; i++{
     binarySlice = append(binarySlice, binarySlice[i]*2)
-    if binarySlice[i] > 1000000{
+    if binarySlice[i] > 100000{
       break
     }
   }
