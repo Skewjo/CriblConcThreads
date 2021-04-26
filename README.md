@@ -1,11 +1,21 @@
 # CriblConcThreads
 
-Somewhat surprisingly, Go does not perform any optimization for using the same fixed random seed in all 100000+ Go-routines:
-![no_optimization_for_fixed_seeds](https://user-images.githubusercontent.com/4118039/116079916-0969d700-a65e-11eb-9369-813708a4c3d2.PNG)
+Somewhat surprisingly, Go performs little optimization for using the same fixed random seed in all 100000+ Go-routines (I believe blocking calls were incorrectly implemented at this point for Windows, but not for Linux so this is only an apt inter-OS comparsion):
+| Windows | Linux |
+| ------------- | ------------- |
+| ![no_optimization_for_fixed_seeds](https://user-images.githubusercontent.com/4118039/116079916-0969d700-a65e-11eb-9369-813708a4c3d2.PNG) |
+![optimization for fixed seeds](https://user-images.githubusercontent.com/4118039/116081756-40d98300-a660-11eb-92bc-90cf58a48116.png) |
+
+
 
 I decided to up the number of Go-routines created up from 100,000+ to 1,000,000+, and at some point, both Windows and Linux fall off the rails:
-![cranked_to_11](https://user-images.githubusercontent.com/4118039/116080164-551c8080-a65e-11eb-9ba4-4ab82ff018a8.PNG)
-![linux_1_mil](https://user-images.githubusercontent.com/4118039/116080238-70878b80-a65e-11eb-854d-bf2f15e6e4a0.PNG)
+
+| Windows | Linux |
+| ------------- | ------------- |
+| ![cranked_to_11](https://user-images.githubusercontent.com/4118039/116080164-551c8080-a65e-11eb-9ba4-4ab82ff018a8.PNG)  | ![linux_1_mil](https://user-images.githubusercontent.com/4118039/116080238-70878b80-a65e-11eb-854d-bf2f15e6e4a0.PNG) |
+
+
+
 
 ## System Info
 Here's the system info for the machine I've run these tests on:
