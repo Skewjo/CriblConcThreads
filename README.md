@@ -1,5 +1,11 @@
 # CriblConcThreads
 
+## Thread Use Comparison Between Windows and WSL
+While the run times are similar (in this excercise at least), it appears that Golang takes a much different approach in regards to thread usage between the different OS:
+| Windows | Linux |
+| ------------- | ------------- |
+| ![real_results_windows](https://user-images.githubusercontent.com/4118039/116083614-6c5d6d00-a662-11eb-86ab-496e78c5a720.PNG) | ![real_results_linux](https://user-images.githubusercontent.com/4118039/116083617-6ebfc700-a662-11eb-895d-b0bedcf59187.PNG) |
+
 ## Little Optimization for Fixed Seeds
 Somewhat surprisingly, Go performs less optimization than I had expected for using the same fixed random seed in all 100000+ Go-routines:
 | Windows | Linux |
